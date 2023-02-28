@@ -4,10 +4,23 @@
 实现一个基本的shell，具备如下功能：
 
 - 读取键盘输入，给出对应输出
-- 支持命令格式：Command [-Options] Argument1 Argument2
-- Shell提示符，如果当前用户为超级用户，提示符为“#”；其他用户的提示符均为$
 - 分号隔开多条命令
-- 命令Tab补齐、文件名补齐
-- cd、ls、pwd
-- 上下键查看输入历史；history命令（保留100条）
-- export (ENV设置)
+- ~~命令Tab补齐、文件名补齐、- 上下键查看输入历史；~~（找不到合适的监听键盘输入的库）
+- cd、ls、pwd等一些简单命令
+- 显示/切换工作目录
+
+演示：
+```shell
+lei@WilldeMacBook-Pro simpleshell % cargo run
+Welcome to simpleshell-rs.
+simpleshell >ls
+Cargo.lock      Cargo.toml      src             target
+simpleshell >pwd
+/Users/lei/Desktop/Rust/rust_practices/simpleshell
+simpleshell >cd ..
+rust_practices >cd sim  
+cd: No such file or directory (os error 2): sim
+rust_practices >cd simpleshell
+simpleshell >exit
+lei@WilldeMacBook-Pro simpleshell %
+```

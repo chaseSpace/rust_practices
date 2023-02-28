@@ -1,85 +1,112 @@
 use std;
-use std::{panic};
+use std::{env, thread};
+use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
-use std::io::Write;
+use std::io::{stdin, stdout, Write};
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
+
+extern crate termion;
 
 const SHELL_NAME: &str = "simpleshell-rs";
 
-#[derive(Debug)]
-enum MyErr {
-    E1(String),
-}
 
+// #[derive(Debug)]
+// enum MyErr {
+//     E1(String),
+// }
+//
 
-impl Display for MyErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{}: {}", SHELL_NAME, &self.to_string()))
-    }
+// impl Display for MyErr {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+//         f.write_fmt(format_args!("{}: {}", SHELL_NAME, &self.to_string()))
+//     }
+// }
+
+fn get_dirname_of_path(path: &PathBuf) -> &str {
+    path.components().last().unwrap().as_os_str().to_str().unwrap()
 }
 
 fn main_loop() {
     let mut input = String::new();
     println!("Welcome to {}.", SHELL_NAME);
+
+    let mut current_workdir = env::current_dir().unwrap();
+
+    thread::spawn(|| auto_completion());
+
     loop {
-        print!(">");
-        std::io::stdout().flush().unwrap();
+        print!("{} >", get_dirname_of_path(&current_workdir));
+        stdout().flush().unwrap();
         // 读取输入（包含\n）
-        let size_ret = std::io::stdin().read_line(&mut input);
-        if size_ret.is_err() {
-            eprintln!("read input error: {}\n", size_ret.unwrap_err());
+        let ret = stdin().read_line(&mut input);
+
+        if ret.is_err() {
+            eprintln!("read input error: {}\n", ret.unwrap_err());
             continue;
         }
-        let input_len = size_ret.unwrap();
-        if input_len == 1 { // 仅含\n
+        if input.trim().is_empty() {
             continue;
         }
 
-        // 解析命令（减一是从\n的位置分隔，结果才不含\n）
-        let (input_cmd, _) = input.split_at(input_len - 1);
-        // println!("input_cmd: {}", input_cmd);
+        let cmd_slice = input.split(";").filter(|&s| s != "");
 
-        let mut cmd_slice: Vec<&str> = input_cmd.splitn(2, " ").collect();
+        // 执行每条命令
+        for single_cmd in cmd_slice {
+            let mut parts = single_cmd.split_whitespace();
+            let cmd = parts.next().unwrap();
+            let args = parts;
 
-        let cmd = cmd_slice[0];
-        let mut args = String::new();
-        if cmd_slice.len() == 2 {
-            args = String::from(cmd_slice[1]);
+            exec(cmd, args, &mut current_workdir);
+            // 执行命令
+            // match panic::catch_unwind(|| { exec(cmd, args, &mut current_workdir) }) {
+            //     Ok(()) => {}
+            //     Err(_) => eprintln!("{}: exec panic for: {:?}\n", SHELL_NAME, single_cmd)
+            // }
         }
-        // println!("input cmd: {} {}", cmd_slice[0], cmd_slice[1]);
-
-        // 执行命令
-        match panic::catch_unwind(|| { exec(cmd, args.split(" ").filter(|&s| s != "").collect()) }) {
-            Ok(()) => {}
-            Err(_) => eprintln!("{}: command not found: {:?}\n", SHELL_NAME, input_cmd)
-        }
-
         input.clear();
     }
 }
 
 
-fn exec(cmd: &str, args: Vec<&str>) {
+fn exec<I: Iterator>(cmd: &str, args: I, workdir: &mut PathBuf) where <I as Iterator>::Item: AsRef<OsStr> {
     match cmd {
         "exit" => { std::process::exit(0) }
-        _ => {
-            let mut cmd = std::process::Command::new(cmd);
-            if args.len() > 0 {
-                // println!("{:?},", args);
-                cmd.args(args);
-            }
-            let ret = cmd.output();
-            match ret {
-                Ok(output) => println!("{}", String::from_utf8_lossy(&output.stdout)),
-                Err(e) => {
-                    eprintln!("{}: exec error: {}\n", SHELL_NAME, e)
+        "cd" => {
+            for path in args {
+                match env::set_current_dir(&PathBuf::from(path.as_ref())) {
+                    Err(e) => eprintln!("cd: {}: {}", e, path.as_ref().to_str().unwrap()),
+                    Ok(()) => { *workdir = env::current_dir().unwrap() }
                 }
+                break;
+            }
+        }
+        _ => {
+            // 先检查命令是否存在（主要要把输出丢弃，否则会定向到console，影响效果）
+            if Command::new(cmd).stdout(Stdio::null()).stderr(Stdio::null()).status().is_err() {
+                eprintln!("{}: command not found: {}", SHELL_NAME, cmd);
+                return;
+            }
+
+            let mut child = Command::new(cmd)
+                .args(args)
+                .stdin(Stdio::inherit())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .spawn()
+                .unwrap();
+            let ret = child.wait();
+            if ret.is_err() {
+                eprintln!("{}: exec error: {}\n", SHELL_NAME, ret.unwrap_err())
             }
         }
     }
 }
 
+fn auto_completion() {}
+
 fn test_cmd() {
-    exec("pss", vec![]);
+    exec("pss", "".split_whitespace(), &mut PathBuf::new());
 }
 
 fn main() {
