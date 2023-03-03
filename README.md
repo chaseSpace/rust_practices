@@ -3,7 +3,7 @@
 ## 1. Rust Blogs
 [一文讲透Rust中的PartialEq和Eq_Leigg原创](./blogs/about_eq_ord_trait.md)
 
-<br></br>
+<br>
 
 ## 2. Rust projects
 ### 2.1 Simple Shell
