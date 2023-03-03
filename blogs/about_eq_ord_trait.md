@@ -39,6 +39,14 @@
 在正式介绍PartialEq和Eq、以及PartialOrd和Ord之前，本文会首先介绍它们所遵循的数学理论，也就是**相等关系**。
 文章主要分两大部分，第一部分是第2\~5节主要讨论PartialEq和Eq，第二大部分为第6节主要讨论PartialOrd和Ord，内容描述可能具有先后顺序，建议按章节顺序阅读。
 
+### 声明
+本文内容来自作者个人的学习成果总结及整理，可能会存在因个人水平导致的表述错误，欢迎并感谢读者指正！
+- 作者：[**Leigg**](https://github.com/chaseSpace)
+- 首发地址：https://github.com/chaseSpace/rust_practices/blob/main/blogs/about_eq_ord_trait.md
+- CSDN：https://blog.csdn.net/sc_lilei/article/details/129322616
+- 发布时间：2023年03月03日
+- License：CC-BY-NC-SA 4.0 （转载请注明作者及来源）
+
 ## 1. 数学中的相等关系
 
 在初中数学中，会介绍到什么是相等关系（也叫等价关系），相等关系是一种基本的二元关系，它描述了两个对象之间的相等性质。它必须满足如下三个性质：
@@ -826,11 +834,13 @@ mod impls {
 
 0. 实现Ord的时候需要同时实现PartialOrd，不要求实现的顺序。PartialOrd的`partial_cmp()`内部调用的是Ord的`cmp()`，理由前面讲过；
 1. 同样为`()`和bool类型实现了Ord；
-2. 为大部分基本类型`char usize u8 u16 ...`实现了Ord；
+2. 为大部分基本类型`char usize u8 u16 ...`(除了f32、f64) 实现了Ord；
 
 ### 6.8 为其他类型实现四大compare-trait
 
 这里指的其他类型是`!`、`不可变借用类型`、`可变借用类型`，具体实现代码就在源码中刚刚看的宏`ord_impl!`下方，此处就不再赘述。
+
+<br></br>
 
 
 [0]: https://en.wikipedia.org/wiki/Partial_equivalence_relation
