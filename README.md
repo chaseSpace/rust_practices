@@ -1,6 +1,10 @@
 # Rust Practices
 
-## 1. Simple Shell
+## 1. Rust Blogs
+[一文讲透Rust中的PartialEq和Eq_Leigg原创](./blogs/about_eq_ord_trait.md)
+
+## 2. Rust projects
+### 2.1 Simple Shell
 实现一个基本的shell，具备如下功能：
 
 - 读取键盘输入，给出对应输出
