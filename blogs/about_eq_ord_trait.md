@@ -46,6 +46,8 @@
 - CSDN：https://blog.csdn.net/sc_lilei/article/details/129322616
 - 发布时间：2023年03月03日
 - License：CC-BY-NC-SA 4.0 （转载请注明作者及来源）
+- 已发表的公众号
+    - [Rust语言中文社区](https://mp.weixin.qq.com/s/hdW2QjAExPs1cE9rV1tn4Q)
 
 <br>
 
